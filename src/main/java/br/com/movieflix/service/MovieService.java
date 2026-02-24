@@ -30,6 +30,10 @@ public class MovieService {
         return movieRepository.findAll();
     }
 
+    public List<Movie> findByCategory(Long categoryId){
+        return movieRepository.findMovieByCategories_Id(categoryId);
+    }
+
     public Optional<Movie> findById(Long id){
         return movieRepository.findById(id);
     }
