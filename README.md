@@ -19,6 +19,7 @@ O projeto foi criado com o objetivo de:
 - 📑 Documentar endpoints utilizando Swagger
 - 🚀 Simular um ambiente próximo ao mercado de trabalho
 ---
+A API permite o gerenciamento de filmes, possibilitando operações de cadastro, listagem, atualização e remoção de registros.
 
 ## 🚀 Tecnologias utilizadas
 
