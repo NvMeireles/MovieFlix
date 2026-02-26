@@ -1,72 +1,83 @@
 package br.com.movieflix.controller;
 
-
 import br.com.movieflix.controller.request.MovieRequest;
 import br.com.movieflix.controller.response.MovieResponse;
-import br.com.movieflix.entity.Movie;
-import br.com.movieflix.mapper.MovieMapper;
-import br.com.movieflix.service.MovieService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
-@RestController
-@RequestMapping("/movieflix/movie")
-@RequiredArgsConstructor
-public class MovieController {
+@Tag(name = "Movie", description = "Recurso responsável pelo gerenciamento dos filmes.")
+@SecurityRequirement(name = "bearerAuth")
+public interface MovieController {
 
-    private final MovieService movieService;
-
+    @Operation(summary = "Cadastrar filme",
+            description = "Realiza o cadastro de um novo filme.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Filme cadastrado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    })
     @PostMapping
-        public ResponseEntity<MovieResponse> save(@Valid @RequestBody MovieRequest request){
-        Movie savedMovie = movieService.save(MovieMapper.toMovie(request));
-        return ResponseEntity.ok(MovieMapper.toMovieResponse(savedMovie));
-    }
+    ResponseEntity<MovieResponse> save(
+            @Valid @RequestBody MovieRequest request
+    );
 
+    @Operation(summary = "Listar todos os filmes",
+            description = "Retorna uma lista com todos os filmes cadastrados.")
+    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @GetMapping
-        public ResponseEntity<List<MovieResponse>> findAll(){
-           return ResponseEntity.ok(movieService.findAll()
-                   .stream()
-                   .map(MovieMapper::toMovieResponse)
-                   .toList());
-        }
+    ResponseEntity<List<MovieResponse>> findAll();
 
-
+    @Operation(summary = "Buscar filme por ID",
+            description = "Retorna um filme específico a partir do seu ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Filme encontrado"),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<MovieResponse> findById(@PathVariable Long id){
-        return movieService.findById(id)
-                .map(movie -> ResponseEntity.ok(MovieMapper.toMovieResponse(movie)))
-                .orElse(ResponseEntity.notFound().build());
-    }
+    ResponseEntity<MovieResponse> findById(
+            @Parameter(description = "ID do filme", example = "1")
+            @PathVariable Long id
+    );
 
+    @Operation(summary = "Atualizar filme",
+            description = "Atualiza os dados de um filme existente.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Filme atualizado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado")
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<MovieResponse> update(@PathVariable Long id, @Valid @RequestBody MovieRequest request){
-        return movieService.update(id, MovieMapper.toMovie(request))
-                .map(movie -> ResponseEntity.ok(MovieMapper.toMovieResponse(movie)))
-                .orElse(ResponseEntity.notFound().build());
-    }
+    ResponseEntity<MovieResponse> update(
+            @Parameter(description = "ID do filme", example = "1")
+            @PathVariable Long id,
+            @Valid @RequestBody MovieRequest request
+    );
 
+    @Operation(summary = "Buscar filmes por categoria",
+            description = "Retorna todos os filmes associados a uma categoria específica.")
+    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @GetMapping("/search")
-    public ResponseEntity<List<MovieResponse>> findByCategory(@RequestParam Long category){
-        return ResponseEntity.ok(movieService.findByCategory(category)
-                .stream()
-                .map(MovieMapper::toMovieResponse)
-                .toList());
-    }
+    ResponseEntity<List<MovieResponse>> findByCategory(
+            @Parameter(description = "ID da categoria", example = "2")
+            @RequestParam Long category
+    );
 
+    @Operation(summary = "Remover filme",
+            description = "Remove um filme pelo ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Filme removido com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id){
-        Optional<Movie> optMovie = movieService.findById(id);
-        if (optMovie.isPresent()){
-            movieService.delete(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
-    }
-
+    ResponseEntity<Void> delete(
+            @Parameter(description = "ID do filme", example = "1")
+            @PathVariable Long id
+    );
 }

@@ -1,55 +1,65 @@
 package br.com.movieflix.controller;
 
-
 import br.com.movieflix.controller.request.CategoryRequest;
 import br.com.movieflix.controller.response.CategoryResponse;
-import br.com.movieflix.entity.Category;
-import br.com.movieflix.mapper.CategoryMapper;
-import br.com.movieflix.service.CategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
-@RestController
+@Tag(name = "Category", description = "Recurso responsável pelo gerenciamento das categorias de filmes.")
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/movieflix/category")
-@RequiredArgsConstructor
-public class CategoryController {
+public interface CategoryController {
 
-    private final CategoryService categoryService;
+    @Operation(summary = "Listar todas as categorias",
+            description = "Retorna todas as categorias cadastradas no sistema.")
+    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    @GetMapping
+    ResponseEntity<List<CategoryResponse>> getAllCategories();
 
-    @GetMapping()
-    public ResponseEntity<List<CategoryResponse>> getAllCategories(){
-        List<CategoryResponse> categories  = categoryService.findAll()
-                .stream()
-                .map(CategoryMapper::toCategoryResponse)
-                .toList();
 
-        return ResponseEntity.ok(categories);
-    }
-
+    @Operation(summary = "Cadastrar nova categoria",
+            description = "Realiza o cadastro de uma nova categoria.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Categoria cadastrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    })
     @PostMapping
-    public ResponseEntity<CategoryResponse> saveCategory(@Valid @RequestBody CategoryRequest request){
-        Category newCategory = CategoryMapper.toCategory(request);
-        Category savedCategory = categoryService.saveCategory(newCategory);
-        return ResponseEntity.status(HttpStatus.CREATED).body(CategoryMapper.toCategoryResponse(savedCategory));
-    }
+    ResponseEntity<CategoryResponse> saveCategory(
+            @Valid @RequestBody CategoryRequest request
+    );
 
+
+    @Operation(summary = "Buscar categoria por ID",
+            description = "Retorna uma categoria específica pelo seu ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Categoria encontrada"),
+            @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getByCategoryId(@PathVariable Long id){
-        return categoryService.findById(id)
-                .map(category -> ResponseEntity.ok(CategoryMapper.toCategoryResponse(category)))
-                .orElse(ResponseEntity.notFound().build());
-    }
+    ResponseEntity<CategoryResponse> getByCategoryId(
+            @Parameter(description = "ID da categoria", example = "1")
+            @PathVariable Long id
+    );
 
+
+    @Operation(summary = "Remover categoria",
+            description = "Remove uma categoria pelo ID informado.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Categoria removida com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategoryById(@PathVariable Long id){
-        categoryService.deleteCategory(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
+    ResponseEntity<Void> deleteCategoryById(
+            @Parameter(description = "ID da categoria", example = "1")
+            @PathVariable Long id
+    );
 }
