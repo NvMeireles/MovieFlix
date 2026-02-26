@@ -72,7 +72,7 @@ A API permite o gerenciamento de filmes, possibilitando operações de cadastro,
 Após iniciar o projeto, acesse:
 
 ```text
-http://localhost:8080/swagger-ui/index.html
+http://localhost:8080/swagger/index.html
 ```
 
 ---
